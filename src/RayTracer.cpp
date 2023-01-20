@@ -204,10 +204,8 @@ void RayTracer::traceSetup(int w, int h)
 
 void RayTracer::traceThread(unsigned int id, int w, int h)
 {
-	int chunk_size = (w * h) / threads;
-	int start = chunk_size * id;
-	int end = (id == threads - 1) ? start + chunk_size : w * h;
-	for (int idx = start; idx < end; idx++) {
+	int num_elements = w * h;
+	for (int idx = id; idx < num_elements; idx += threads) {
 		int i = idx / h;
 		int j = idx % h;
 		glm::dvec3 color = tracePixel(i, j);
@@ -240,9 +238,10 @@ void RayTracer::traceImage(int w, int h)
 	//       An asynchronous traceImage lets the GUI update your results
 	//       while rendering.
 	threads_done = 0;
+	thread_list.clear();
 
 	for (unsigned int i = 0; i < threads; i++) {
-		std::thread(&RayTracer::traceThread, this, i, w, h).detach();
+		thread_list.push_back(std::thread(&RayTracer::traceThread, this, i, w, h));
 	}
 }
 
@@ -275,6 +274,9 @@ void RayTracer::waitRender()
 	//        traceImage implementation.
 	//
 	// TIPS: Join all worker threads here.
+	for (std::thread &t : thread_list) {
+		t.join();
+	}
 }
 
 

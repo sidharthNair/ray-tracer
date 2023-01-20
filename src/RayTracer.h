@@ -73,6 +73,7 @@ private:
 
 	bool m_bBufferReady;
 
+	std::vector<std::thread> thread_list;
 	std::atomic<unsigned int> threads_done;
 
 };
