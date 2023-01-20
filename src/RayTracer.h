@@ -12,6 +12,8 @@
 #include "scene/cubeMap.h"
 #include "scene/ray.h"
 #include <mutex>
+#include <atomic>
+#include <thread>
 
 class Scene;
 class Pixel {
@@ -38,6 +40,7 @@ public:
 	void getBuffer(unsigned char*& buf, int& w, int& h);
 	double aspectRatio();
 
+	void traceThread(unsigned int id, int w, int h);
 	void traceImage(int w, int h);
 	int aaImage();
 	bool checkRender();
@@ -69,6 +72,8 @@ private:
 	std::unique_ptr<Scene> scene;
 
 	bool m_bBufferReady;
+
+	std::atomic<unsigned int> threads_done;
 
 };
 

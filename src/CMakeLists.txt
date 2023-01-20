@@ -7,7 +7,7 @@ UNSET(src)
 #IF (EXISTS CMakeLists.sources)
 #      FILE(STRINGS CMakeLists.sources src)
 #ENDIF()
- 
+
 # By default, source files are added automatically
 IF (NOT src)
 	AUX_SOURCE_DIRECTORY(${pwd} src)
@@ -41,3 +41,6 @@ FIND_PACKAGE(ZLIB REQUIRED)
 target_link_libraries(ray ${ZLIB_LIBRARIES})
 SET_PROPERTY(TARGET ray APPEND PROPERTY INCLUDE_DIRECTORIES ${ZLIB_INCLUDE_DIR})
 target_link_libraries(ray ${OPENGL_glu_LIBRARY})
+
+FIND_PACKAGE(Threads REQUIRED)
+TARGET_LINK_LIBRARIES(ray Threads::Threads)

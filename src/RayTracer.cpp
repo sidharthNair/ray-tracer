@@ -38,7 +38,7 @@ glm::dvec3 RayTracer::trace(double x, double y)
 	// Clear out the ray cache in the scene for debugging purposes,
 	if (TraceUI::m_debug)
 	{
-		scene->clearIntersectCache();		
+		scene->clearIntersectCache();
 	}
 
 	ray r(glm::dvec3(0,0,0), glm::dvec3(0,0,0), glm::dvec3(1,1,1), ray::VISIBILITY);
@@ -202,6 +202,20 @@ void RayTracer::traceSetup(int w, int h)
 	// FIXME: Additional initializations
 }
 
+void RayTracer::traceThread(unsigned int id, int w, int h)
+{
+	int chunk_size = (w * h) / threads;
+	int start = chunk_size * id;
+	int end = (id == threads - 1) ? start + chunk_size : w * h;
+	for (int idx = start; idx < end; idx++) {
+		int i = idx / h;
+		int j = idx % h;
+		glm::dvec3 color = tracePixel(i, j);
+		setPixel(i, j, color);
+	}
+	threads_done++;
+}
+
 /*
  * RayTracer::traceImage
  *
@@ -225,6 +239,11 @@ void RayTracer::traceImage(int w, int h)
 	//
 	//       An asynchronous traceImage lets the GUI update your results
 	//       while rendering.
+	threads_done = 0;
+
+	for (unsigned int i = 0; i < threads; i++) {
+		std::thread(&RayTracer::traceThread, this, i, w, h).detach();
+	}
 }
 
 int RayTracer::aaImage()
@@ -245,7 +264,7 @@ bool RayTracer::checkRender()
 	//
 	// TIPS: Introduce an array to track the status of each worker thread.
 	//       This array is maintained by the worker threads.
-	return true;
+	return threads_done == threads;
 }
 
 void RayTracer::waitRender()
