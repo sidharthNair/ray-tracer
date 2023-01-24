@@ -45,7 +45,23 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 	// 		.
 	// 		.
 	// }
-	return kd(i);
+
+	// Phong Shading Model: K_a*I_scene + (K_d * |l . n| + K_s*(max(v . r, 0))^alpha)*I_in
+
+	// Ambient Term
+	glm::dvec3 color = ka(i) * scene->ambient();
+	glm::dvec3 v = -r.getDirection();
+	glm::dvec3 normal = i.getN();
+	glm::dvec3 position = r.at(i);
+	for (const auto& lightSource : scene->getAllLights()){
+		glm::dvec3 light = lightSource->getDirection(position);
+		double ln = glm::dot(light, normal);
+		double vr = glm::dot(v, 2 * ln * normal - light);
+		glm::dvec3 I_in = lightSource->distanceAttenuation(position) * lightSource->getColor();
+		// Diffuse and Specular Terms
+		color += (kd(i) * abs(ln) + ks(i) * pow(max(vr, 0.0), shininess(i))) * I_in;
+	}
+	return color;
 }
 
 TextureMap::TextureMap(string filename)
