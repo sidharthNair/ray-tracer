@@ -57,7 +57,9 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 		glm::dvec3 light = lightSource->getDirection(position);
 		double ln = glm::dot(light, normal);
 		double vr = glm::dot(v, 2 * ln * normal - light);
-		glm::dvec3 I_in = lightSource->distanceAttenuation(position) * lightSource->getColor();
+		glm::dvec3 I_in = lightSource->distanceAttenuation(position) *
+						  lightSource->shadowAttenuation(r, position) *
+						  lightSource->getColor();
 		// Diffuse and Specular Terms
 		color += (kd(i) * abs(ln) + ks(i) * pow(max(vr, 0.0), shininess(i))) * I_in;
 	}

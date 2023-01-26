@@ -19,7 +19,27 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p
 {
 	// YOUR CODE HERE:
 	// You should implement shadow-handling code here.
-	return glm::dvec3(1.0, 1.0, 1.0);
+	ray shadowRay = ray(p, getDirection(p), glm::dvec3(1.0, 1.0, 1.0), ray::SHADOW);
+	isect i;
+	glm::dvec3 intensity = glm::dvec3(1.0, 1.0, 1.0);
+	// Loop for all intersections
+	while (scene->intersect(shadowRay, i)) {
+		if (!i.getMaterial().Trans()) {
+			// Found opaque object on path
+			return glm::dvec3(0.0, 0.0, 0.0);
+		} else if (glm::dot(shadowRay.getDirection(), i.getN()) > 0) {
+			// Entering translucent object on path
+			glm::dvec3 kt = i.getMaterial().kt(i);
+			intensity[0] *= pow(kt[0], i.getT());
+			intensity[1] *= pow(kt[1], i.getT());
+			intensity[2] *= pow(kt[2], i.getT());
+		shadowRay.setPosition(shadowRay.at(i) + i.getN() * RAY_EPSILON);
+		} else {
+			// Leaving translucent object on path
+			shadowRay.setPosition(shadowRay.at(i) - i.getN() * RAY_EPSILON);
+		}
+	}
+	return intensity;
 }
 
 glm::dvec3 DirectionalLight::getColor() const
@@ -59,7 +79,29 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p) cons
 {
 	// YOUR CODE HERE:
 	// You should implement shadow-handling code here.
-	return glm::dvec3(1,1,1);
+	ray shadowRay = ray(p, getDirection(p), glm::dvec3(1.0, 1.0, 1.0), ray::SHADOW);
+	isect i;
+	glm::dvec3 intensity = glm::dvec3(1.0, 1.0, 1.0);
+	double length = glm::distance(p, position);
+	// Loop for all intersections
+	while (scene->intersect(shadowRay, i)) {
+		if (length - i.getT() < 0) {
+			return intensity;
+		} else if (!i.getMaterial().Trans()) {
+			return glm::dvec3(0.0, 0.0, 0.0);
+		} else if (glm::dot(shadowRay.getDirection(), i.getN()) > 0) {
+			// Entering translucent object on path
+			glm::dvec3 kt = i.getMaterial().kt(i);
+			intensity[0] *= pow(kt[0], i.getT());
+			intensity[1] *= pow(kt[1], i.getT());
+			intensity[2] *= pow(kt[2], i.getT());
+		shadowRay.setPosition(shadowRay.at(i) + i.getN() * RAY_EPSILON);
+		} else {
+			// Leaving translucent object on path
+			shadowRay.setPosition(shadowRay.at(i) - i.getN() * RAY_EPSILON);
+		}
+	}
+	return intensity;
 }
 
 #define VERBOSE 0
