@@ -102,13 +102,42 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		glm::dvec3 normal = i.getN();
 		glm::dvec3 reversed = -r.getDirection();
 
-		if (m.Refl() && glm::dot(normal, reversed) > 0) {
+		bool outsideSurface = glm::dot(normal, reversed) > 0;
+
+		if (m.Refl() && outsideSurface) {
 			// Reflective surface hit from the front
 			glm::dvec3 position = r.at(i) + RAY_EPSILON * normal;
 			glm::dvec3 reflected = 2 * glm::dot(reversed, normal) * normal - reversed;
-
 			ray reflectedRay = ray(position, reflected, glm::dvec3(1.0, 1.0, 1.0), ray::REFLECTION);
 			colorC += m.kr(i) * traceRay(reflectedRay, thresh, depth - 1, t);
+		}
+
+		if (m.Trans()) {
+			// Refraction
+			double eta = outsideSurface ? 1.0 / m.index(i) : m.index(i);
+            if (!outsideSurface) {
+                // Inside the surface, so we need to reverse the normal vector
+                normal = -normal;
+            }
+			double cos_i = glm::dot(reversed, normal);
+			double temp = 1.0 - eta * eta * (1 - cos_i * cos_i);
+			if (temp > 0) {
+				// Standard refraction case
+				double cos_t = sqrt(temp);
+                // Adjust the position to be on the other side of the boundary
+				glm::dvec3 position = r.at(i) - RAY_EPSILON * normal;
+				glm::dvec3 refracted = (eta * cos_i - cos_t) * normal - eta * reversed;
+				ray refractedRay = ray(position, refracted, glm::dvec3(1.0, 1.0, 1.0), ray::REFRACTION);
+				// TODO: Multiply refracted ray by kt^d (need to figure out distance the light travels)
+				colorC += traceRay(refractedRay, thresh, depth - 1, t);
+
+			} else if (temp < 0 && m.Refl()) {
+				// Total internal reflection
+				glm::dvec3 position = r.at(i) + RAY_EPSILON * normal;
+				glm::dvec3 reflected = 2 * glm::dot(reversed, normal) * normal - reversed;
+				ray reflectedRay = ray(position, reflected, glm::dvec3(1.0, 1.0, 1.0), ray::REFLECTION);
+				colorC += m.kr(i) * traceRay(reflectedRay, thresh, depth - 1, t);
+			}
 		}
 	} else {
 		// No intersection.  This ray travels to infinity, so we color
@@ -262,6 +291,7 @@ void RayTracer::traceImage(int w, int h)
 
 	for (unsigned int i = 0; i < threads; i++) {
 		thread_list.push_back(std::thread(&RayTracer::traceThread, this, i, w, h));
+		thread_list[i].detach();
 	}
 }
 
