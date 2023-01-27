@@ -52,7 +52,7 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 	glm::dvec3 color = ka(i) * scene->ambient();
 	glm::dvec3 v = -r.getDirection();
 	glm::dvec3 normal = i.getN();
-	glm::dvec3 position = r.at(i);
+	glm::dvec3 position = r.at(i) + RAY_EPSILON * normal;
 	for (const auto& lightSource : scene->getAllLights()){
 		glm::dvec3 light = lightSource->getDirection(position);
 		double ln = glm::dot(light, normal);

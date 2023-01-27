@@ -90,15 +90,15 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p) cons
 		} else if (!i.getMaterial().Trans()) {
 			return glm::dvec3(0.0, 0.0, 0.0);
 		} else if (glm::dot(shadowRay.getDirection(), i.getN()) > 0) {
-			// Entering translucent object on path
+            // Leaving translucent object on path
 			glm::dvec3 kt = i.getMaterial().kt(i);
 			intensity[0] *= pow(kt[0], i.getT());
 			intensity[1] *= pow(kt[1], i.getT());
 			intensity[2] *= pow(kt[2], i.getT());
-		shadowRay.setPosition(shadowRay.at(i) + i.getN() * RAY_EPSILON);
+		    shadowRay.setPosition(shadowRay.at(i) + RAY_EPSILON * i.getN());
 		} else {
-			// Leaving translucent object on path
-			shadowRay.setPosition(shadowRay.at(i) - i.getN() * RAY_EPSILON);
+			// Entering translucent object on path
+			shadowRay.setPosition(shadowRay.at(i) - RAY_EPSILON * i.getN());
 		}
 	}
 	return intensity;

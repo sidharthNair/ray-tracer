@@ -96,6 +96,9 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
 
+        // Get the intersection time for refraction distance
+        t = i.getT();
+
 		const Material& m = i.getMaterial();
 		colorC = m.shade(scene.get(), r, i);
 
@@ -109,7 +112,8 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 			glm::dvec3 position = r.at(i) + RAY_EPSILON * normal;
 			glm::dvec3 reflected = 2 * glm::dot(reversed, normal) * normal - reversed;
 			ray reflectedRay = ray(position, reflected, glm::dvec3(1.0, 1.0, 1.0), ray::REFLECTION);
-			colorC += m.kr(i) * traceRay(reflectedRay, thresh, depth - 1, t);
+            double dummy = 0;
+			colorC += m.kr(i) * traceRay(reflectedRay, thresh, depth - 1, dummy);
 		}
 
 		if (m.Trans()) {
@@ -128,15 +132,23 @@ glm::dvec3 RayTracer::traceRay(ray& r, const glm::dvec3& thresh, int depth, doub
 				glm::dvec3 position = r.at(i) - RAY_EPSILON * normal;
 				glm::dvec3 refracted = (eta * cos_i - cos_t) * normal - eta * reversed;
 				ray refractedRay = ray(position, refracted, glm::dvec3(1.0, 1.0, 1.0), ray::REFRACTION);
-				// TODO: Multiply refracted ray by kt^d (need to figure out distance the light travels)
-				colorC += traceRay(refractedRay, thresh, depth - 1, t);
-
+                double distance = 0;
+				glm::dvec3 tempColorC = traceRay(refractedRay, thresh, depth - 1, distance);
+                if (outsideSurface) {
+                    // Adjust the color based on the distance of refracted ray in the material
+                    glm::dvec3 kt = m.kt(i);
+                    tempColorC[0] *= pow(kt[0], distance);
+                    tempColorC[1] *= pow(kt[1], distance);
+                    tempColorC[2] *= pow(kt[2], distance);
+                }
+                colorC += tempColorC;
 			} else if (temp < 0 && m.Refl()) {
 				// Total internal reflection
 				glm::dvec3 position = r.at(i) + RAY_EPSILON * normal;
 				glm::dvec3 reflected = 2 * glm::dot(reversed, normal) * normal - reversed;
 				ray reflectedRay = ray(position, reflected, glm::dvec3(1.0, 1.0, 1.0), ray::REFLECTION);
-				colorC += m.kr(i) * traceRay(reflectedRay, thresh, depth - 1, t);
+                double dummy = 0;
+				colorC += m.kr(i) * traceRay(reflectedRay, thresh, depth - 1, dummy);
 			}
 		}
 	} else {
