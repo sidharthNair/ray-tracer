@@ -48,20 +48,26 @@ glm::dvec3 Material::shade(Scene* scene, const ray& r, const isect& i) const
 
 	// Phong Shading Model: K_a*I_scene + (K_d * |l . n| + K_s*(max(v . r, 0))^alpha)*I_in
 
-	// Ambient Term
-	glm::dvec3 color = ka(i) * scene->ambient();
+	// Emissive and Ambient Term
+	glm::dvec3 color = ke(i) + ka(i) * scene->ambient();
 	glm::dvec3 v = -r.getDirection();
 	glm::dvec3 normal = i.getN();
+    if (glm::dot(v, normal) < 0) {
+        normal = -normal;
+    }
 	glm::dvec3 position = r.at(i) + RAY_EPSILON * normal;
-	for (const auto& lightSource : scene->getAllLights()){
+	for (const auto& lightSource : scene->getAllLights()) {
 		glm::dvec3 light = lightSource->getDirection(position);
 		double ln = glm::dot(light, normal);
 		double vr = glm::dot(v, 2 * ln * normal - light);
-		glm::dvec3 I_in = lightSource->distanceAttenuation(position) *
+		glm::dvec3 I_in = lightSource->distanceAttenuation(r.at(i)) *
 						  lightSource->shadowAttenuation(r, position) *
 						  lightSource->getColor();
 		// Diffuse and Specular Terms
-		color += (kd(i) * abs(ln) + ks(i) * pow(max(vr, 0.0), shininess(i))) * I_in;
+        // For transparent materials we consider diffuse lighting coming from both sides
+        // of the surface. Otherwise, we only consider positive terms.
+		color += I_in * (kd(i) * (i.getMaterial().Trans() ? abs(ln) : max(ln, 0.0)) +
+                         ks(i) * pow(max(vr, 0.0), shininess(i)));
 	}
 	return color;
 }
