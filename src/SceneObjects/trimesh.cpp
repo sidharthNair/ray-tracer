@@ -96,8 +96,36 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 	// YOUR CODE HERE
 	//
 	// FIXME: Add ray-trimesh intersection
+    glm::dvec3 o = r.getPosition();
+    glm::dvec3 v = r.getDirection();
 
-	return false;
+    glm::dvec3 a = parent->vertices[ids[0]];
+    glm::dvec3 b = parent->vertices[ids[1]];
+    glm::dvec3 c = parent->vertices[ids[2]];
+
+    double t = glm::dot(a - o, normal) / glm::dot(v, normal);
+
+    if (t < 0.0) {
+        return false;
+    }
+
+    glm::dvec3 p = r.at(t);
+
+    if (glm::dot(glm::cross(b - a, p - a), normal) < 0) {
+        return false;
+    }
+    if (glm::dot(glm::cross(c - b, p - b), normal) < 0) {
+        return false;
+    }
+    if (glm::dot(glm::cross(a - c, p - c), normal) < 0) {
+        return false;
+    }
+
+    i.setT(t);
+    i.setN(normal);
+    i.setMaterial(this->getMaterial());
+    i.setUVCoordinates(glm::dvec2(0.5, 0.5));
+    return true;
 }
 
 // Once all the verts and faces are loaded, per vertex normals can be
