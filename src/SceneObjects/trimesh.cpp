@@ -105,7 +105,7 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 
     double t = glm::dot(a - o, normal) / glm::dot(v, normal);
 
-    if (t < 0.0) {
+    if (t < RAY_EPSILON) {
         return false;
     }
 
@@ -120,11 +120,45 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     if (glm::dot(glm::cross(a - c, p - c), normal) < 0) {
         return false;
     }
-
     i.setT(t);
-    i.setN(normal);
-    i.setMaterial(this->getMaterial());
-    i.setUVCoordinates(glm::dvec2(0.5, 0.5));
+
+    // Barycentric coordinates calculation as described in
+    // https://ceng2.ktu.edu.tr/~cakir/files/grafikler/Texture_Mapping.pdf
+    glm::dvec3 v0 = b - a, v1 = c - a, v2 = p - a;
+    double d00 = glm::dot(v0, v0);
+    double d01 = glm::dot(v0, v1);
+    double d11 = glm::dot(v1, v1);
+    double d20 = glm::dot(v2, v0);
+    double d21 = glm::dot(v2, v1);
+    double denom = d00 * d11 - d01 * d01;
+
+    glm::dvec3 m;
+    m[1] = (d11 * d20 - d01 * d21) / denom;
+    m[2] = (d00 * d21 - d01 * d20) / denom;
+    m[0] = 1.0 - m[1] - m[2];
+    i.setBary(m);
+    i.setUVCoordinates(glm::dvec2(m[1], m[2]));
+
+    if (parent->normals.size() != 0) {
+        glm::dvec3 interpolatedNormal = glm::dvec3(0.0, 0.0, 0.0);
+        for (int i = 0; i < 3; i++) {
+            interpolatedNormal += m[i] * parent->normals[ids[i]];
+        }
+        i.setN(glm::normalize(interpolatedNormal));
+    } else {
+        i.setN(normal);
+    }
+
+    if (parent->materials.size() != 0) {
+        Material interpolatedMaterial = Material();
+        for (int i = 0; i < 3; i++) {
+            interpolatedMaterial += m[i] * *parent->materials[ids[i]];
+        }
+        i.setMaterial(interpolatedMaterial);
+    } else {
+        i.setMaterial(this->getMaterial());
+    }
+
     return true;
 }
 
