@@ -336,11 +336,13 @@ void RayTracer::traceImage(int w, int h)
 	//       An asynchronous traceImage lets the GUI update your results
 	//       while rendering.
 	threads_done = 0;
+    for (std::thread &t : thread_list) {
+		t.detach();
+	}
 	thread_list.clear();
 
 	for (unsigned int i = 0; i < threads; i++) {
 		thread_list.push_back(std::thread(&RayTracer::traceThread, this, i));
-		thread_list.back().detach();
 	}
 }
 
@@ -354,7 +356,6 @@ int RayTracer::aaImage()
     threads_done -= threads;
     for (unsigned int i = 0; i < threads; i++) {
 		thread_list.push_back(std::thread(&RayTracer::antiAliasingThread, this, i));
-		thread_list.back().detach();
 	}
 	return 0;
 }
