@@ -99,11 +99,7 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
     glm::dvec3 o = r.getPosition();
     glm::dvec3 v = r.getDirection();
 
-    glm::dvec3 a = parent->vertices[ids[0]];
-    glm::dvec3 b = parent->vertices[ids[1]];
-    glm::dvec3 c = parent->vertices[ids[2]];
-
-    double t = glm::dot(a - o, normal) / glm::dot(v, normal);
+    double t = glm::dot(a_coords - o, normal) / glm::dot(v, normal);
 
     if (t < RAY_EPSILON) {
         return false;
@@ -111,25 +107,22 @@ bool TrimeshFace::intersectLocal(ray& r, isect& i) const
 
     glm::dvec3 p = r.at(t);
 
-    if (glm::dot(glm::cross(b - a, p - a), normal) < 0) {
+    if (glm::dot(glm::cross(b_coords - a_coords, p - a_coords), normal) < 0) {
         return false;
     }
-    if (glm::dot(glm::cross(c - b, p - b), normal) < 0) {
+    if (glm::dot(glm::cross(c_coords - b_coords, p - b_coords), normal) < 0) {
         return false;
     }
-    if (glm::dot(glm::cross(a - c, p - c), normal) < 0) {
+    if (glm::dot(glm::cross(a_coords - c_coords, p - c_coords), normal) < 0) {
         return false;
     }
     i.setT(t);
 
     // Barycentric coordinates calculation as described in
     // https://ceng2.ktu.edu.tr/~cakir/files/grafikler/Texture_Mapping.pdf
-    glm::dvec3 v0 = b - a, v1 = c - a, v2 = p - a;
-    double d00 = glm::dot(v0, v0);
-    double d01 = glm::dot(v0, v1);
-    double d11 = glm::dot(v1, v1);
-    double d20 = glm::dot(v2, v0);
-    double d21 = glm::dot(v2, v1);
+    glm::dvec3 vap = p - a_coords;
+    double d20 = glm::dot(vap, vab);
+    double d21 = glm::dot(vap, vac);
     double denom = d00 * d11 - d01 * d01;
 
     glm::dvec3 m;

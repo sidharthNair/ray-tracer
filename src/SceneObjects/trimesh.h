@@ -88,6 +88,10 @@ class TrimeshFace : public MaterialSceneObject {
 	glm::dvec3 normal;
 	double dist;
 
+    glm::dvec3 a_coords, b_coords, c_coords;
+    glm::dvec3 vab, vac, vcb;
+    double d00, d01, d11;
+
 public:
 	TrimeshFace(Scene *scene, Material *mat, Trimesh *parent, int a, int b,
 	            int c)
@@ -99,13 +103,19 @@ public:
 		ids[2]       = c;
 
 		// Compute the face normal here, not on the fly
-		glm::dvec3 a_coords = parent->vertices[a];
-		glm::dvec3 b_coords = parent->vertices[b];
-		glm::dvec3 c_coords = parent->vertices[c];
 
-		glm::dvec3 vab = (b_coords - a_coords);
-		glm::dvec3 vac = (c_coords - a_coords);
-		glm::dvec3 vcb = (b_coords - c_coords);
+        // Cache coordinates, vectors, and dot products for later calculations
+		a_coords = parent->vertices[a];
+		b_coords = parent->vertices[b];
+		c_coords = parent->vertices[c];
+
+		vab = (b_coords - a_coords);
+		vac = (c_coords - a_coords);
+		vcb = (b_coords - c_coords);
+
+        d00 = glm::dot(vab, vab);
+        d01 = glm::dot(vab, vac);
+        d11 = glm::dot(vac, vac);
 
 		if (glm::length(vab) == 0.0 || glm::length(vac) == 0.0 ||
 		    glm::length(vcb) == 0.0)
