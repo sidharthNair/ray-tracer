@@ -32,6 +32,7 @@ public:
 	~RayTracer();
 
 	glm::dvec3 tracePixel(int i, int j);
+    glm::dvec3 tracePixelAA(int i, int j);
 	glm::dvec3 traceRay(ray& r, const glm::dvec3& thresh, int depth,
 	                    double& length);
 
@@ -40,7 +41,8 @@ public:
 	void getBuffer(unsigned char*& buf, int& w, int& h);
 	double aspectRatio();
 
-	void traceThread(unsigned int id, int w, int h);
+	void traceThread(unsigned int id);
+    void antiAliasingThread(unsigned int id);
 	void traceImage(int w, int h);
 	int aaImage();
 	bool checkRender();

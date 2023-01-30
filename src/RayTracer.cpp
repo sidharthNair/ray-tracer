@@ -53,14 +53,40 @@ glm::dvec3 RayTracer::tracePixel(int i, int j)
 {
 	glm::dvec3 col(0,0,0);
 
-	if( ! sceneLoaded() ) return col;
+	if( !sceneLoaded() ) return col;
 
-	double x = double(i)/double(buffer_width);
-	double y = double(j)/double(buffer_height);
+	double x = double(i) / double(buffer_width);
+	double y = double(j) / double(buffer_height);
 
 	unsigned char *pixel = buffer.data() + ( i + j * buffer_width ) * 3;
 	col = trace(x, y);
 
+	pixel[0] = (int)( 255.0 * col[0]);
+	pixel[1] = (int)( 255.0 * col[1]);
+	pixel[2] = (int)( 255.0 * col[2]);
+	return col;
+}
+
+glm::dvec3 RayTracer::tracePixelAA(int i, int j) {
+    glm::dvec3 col(0,0,0);
+
+	if( !sceneLoaded() ) return col;
+
+	double x = double(i) / double(buffer_width);
+	double y = double(j) / double(buffer_height);
+    double d_x = 1.0 / (double(buffer_width) * double(samples)) ;
+    double d_y = 1.0 / (double(buffer_height) * double(samples));
+
+    for (int x_s = 0; x_s < samples; x_s++) {
+        double x_sample = x + x_s * d_x;
+        for (int y_s = 0; y_s < samples; y_s++) {
+            double y_sample = y + y_s * d_y;
+            col += trace(x_sample, y_sample);
+        }
+    }
+    col /= (samples * samples);
+
+	unsigned char *pixel = buffer.data() + ( i + j * buffer_width ) * 3;
 	pixel[0] = (int)( 255.0 * col[0]);
 	pixel[1] = (int)( 255.0 * col[1]);
 	pixel[2] = (int)( 255.0 * col[2]);
@@ -263,13 +289,24 @@ void RayTracer::traceSetup(int w, int h)
 	// FIXME: Additional initializations
 }
 
-void RayTracer::traceThread(unsigned int id, int w, int h)
+void RayTracer::traceThread(unsigned int id)
 {
-	int num_elements = w * h;
+	int num_elements = buffer_width * buffer_height;
 	for (int idx = id; idx < num_elements; idx += threads) {
-		int i = idx / h;
-		int j = idx % h;
+		int i = idx / buffer_height;
+		int j = idx % buffer_height;
 		glm::dvec3 color = tracePixel(i, j);
+		setPixel(i, j, color);
+	}
+	threads_done++;
+}
+
+void RayTracer::antiAliasingThread(unsigned int id) {
+    int num_elements = buffer_width * buffer_height;
+	for (int idx = id; idx < num_elements; idx += threads) {
+		int i = idx / buffer_height;
+		int j = idx % buffer_height;
+		glm::dvec3 color = tracePixelAA(i, j);
 		setPixel(i, j, color);
 	}
 	threads_done++;
@@ -288,7 +325,7 @@ void RayTracer::traceThread(unsigned int id, int w, int h)
 void RayTracer::traceImage(int w, int h)
 {
 	// Always call traceSetup before rendering anything.
-	traceSetup(w,h);
+	traceSetup(w, h);
 
 	// YOUR CODE HERE
 	// FIXME: Start one or more threads for ray tracing
@@ -302,8 +339,8 @@ void RayTracer::traceImage(int w, int h)
 	thread_list.clear();
 
 	for (unsigned int i = 0; i < threads; i++) {
-		thread_list.push_back(std::thread(&RayTracer::traceThread, this, i, w, h));
-		thread_list[i].detach();
+		thread_list.push_back(std::thread(&RayTracer::traceThread, this, i));
+		thread_list.back().detach();
 	}
 }
 
@@ -314,6 +351,11 @@ int RayTracer::aaImage()
 	//
 	// TIP: samples and aaThresh have been synchronized with TraceUI by
 	//      RayTracer::traceSetup() function
+    threads_done -= threads;
+    for (unsigned int i = 0; i < threads; i++) {
+		thread_list.push_back(std::thread(&RayTracer::antiAliasingThread, this, i));
+		thread_list.back().detach();
+	}
 	return 0;
 }
 
