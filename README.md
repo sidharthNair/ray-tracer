@@ -1,6 +1,6 @@
 # ray-tracer
 
-Project 1 for CS 384G
+Project 1 for CS 384G -- Sidharth Nair (sn25377)
 
 ## Milestone 1
 
