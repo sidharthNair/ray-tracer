@@ -97,7 +97,21 @@ glm::dvec3 TextureMap::getMappedValue(const glm::dvec2& coord) const
 	// and use these to perform bilinear interpolation
 	// of the values.
 
-	return glm::dvec3(1, 1, 1);
+	double x = coord[0] * double(width - 1);
+	double y = coord[1] * double(height - 1);
+
+	int x0 = int(x), x1 = x0 + 1;
+	int y0 = int(y), y1 = y0 + 1;
+	glm::dvec3 c00 = getPixelAt(x0, y0);
+	glm::dvec3 c01 = getPixelAt(x0, y1);
+	glm::dvec3 c10 = getPixelAt(x1, y0);
+	glm::dvec3 c11 = getPixelAt(x1, y1);
+	glm::dvec3 color = c00 * (double(x1) - x) * (double(y1) - y) +
+                        c10 * (x - double(x0)) * (double(y1) - y) +
+                        c01 * (double(x1) - x) * (y - double(y0)) +
+                        c11 * (x - double(x0)) * (y - double(y0));
+
+	return color;
 }
 
 glm::dvec3 TextureMap::getPixelAt(int x, int y) const
@@ -106,8 +120,13 @@ glm::dvec3 TextureMap::getPixelAt(int x, int y) const
 	//
 	// In order to add texture mapping support to the
 	// raytracer, you need to implement this function.
-
-	return glm::dvec3(1, 1, 1);
+    glm::dvec3 color(0, 0, 0);
+	if(x < 0 || x >= width || y < 0 || y >= height || data.size() < 3 * width * height)
+		return color;
+	int offset = y * width + x;
+	for(int k = 0; k < 3; k++)
+		color[k] = double(data[3 * offset + k]);
+	return color / 255.0;
 }
 
 glm::dvec3 MaterialParameter::value(const isect& is) const
