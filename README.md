@@ -31,15 +31,11 @@ Implementation of above features were for the most part consistent with what was
 
 ## Milestone 2
 
-Jeffrey Liu (jl72726), Sidharth Nair (sn25377)
-
-Partner contribution breakdown: we both worked on different parts simultaneously; Jeffrey contributed the most to BVH acceleration data structure with SAH while Sidharth worked mostly on cube/texture mapping and super resolution.
-
 ### Features
 
 #### Required
 
-- [✓] (60 pts) Acceleration Structure (BVH with SAH)
+- [✓] (60 pts) Acceleration Structure (BVH)
 - [✓] (10 pts) Texture mapping
 - [✓] (10 pts) Cube mapping
 
@@ -68,9 +64,6 @@ Results:
 
 Please see `sr_samples/` for rendered scenes and their upscaled versions using our model. The model works especially well on cubemaps (the sharpness difference is very noticeable), as it aims to restore photo-realistic details while increasing resolution.
 
-### Design Details
-
-For our acceleration data structure we implemented BVH with SAH. The surface area heuristic is implemented by computing a cost function for each split point at each BVH node level (we're using explicit trees). It naively computes the best cut based on minimizing the expected number of intersections.
-
-Cube mapping and texture mapping were relatively straight forward, and implemented as discussed in class.
-
+| Original             |  Upscaled |
+:-------------------------:|:-------------------------:
+<img width="512" height="512" src="sr_samples/cone_earth.png"/>  |  <img width="512" height="512" src="sr_samples/cone_earth_upscaled.png"/> 
