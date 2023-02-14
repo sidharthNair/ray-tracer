@@ -20,6 +20,7 @@ void BVH::build(const Scene *scene)
             Trimesh *trimesh = (Trimesh *)geometry;
             for (TrimeshFace *face : trimesh->faces)
             {
+                face->ComputeBoundingBox();
                 geometries.push_back((Geometry *)face);
             }
         }
