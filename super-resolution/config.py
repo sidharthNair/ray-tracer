@@ -9,8 +9,6 @@ DISC_FILE = 'disc.tar'
 LOSSES_FILE = 'losses.csv'
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if torch.backends.mps.is_available():
-    DEVICE = torch.device('mps')
 WORKERS = 4
 EPOCHS = 1000
 BATCH_SIZE = 16
