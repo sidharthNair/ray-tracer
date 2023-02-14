@@ -23,6 +23,8 @@ private:
 	char*	rayName;
 	char*	imgName;
 	char*	progName;
+
+    bool upsample = false;
 };
 
 #endif

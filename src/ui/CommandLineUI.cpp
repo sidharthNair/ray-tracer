@@ -26,7 +26,7 @@ CommandLineUI::CommandLineUI(int argc, char** argv) : TraceUI()
 	progName = argv[0];
 	const char* jsonfile = nullptr;
 	string cubemap_file;
-	while ((i = getopt(argc, argv, "tr:w:hj:c:")) != EOF) {
+	while ((i = getopt(argc, argv, "tr:w:hj:c:u")) != EOF) {
 		switch (i) {
 			case 'r':
 				m_nDepth = atoi(optarg);
@@ -40,6 +40,10 @@ CommandLineUI::CommandLineUI(int argc, char** argv) : TraceUI()
 			case 'c':
 				cubemap_file = optarg;
 				break;
+            case 'u':
+                // Upsample with SRGAN
+                upsample = true;
+                break;
 			case 'h':
 				usage();
 				exit(1);
@@ -95,8 +99,13 @@ int CommandLineUI::run()
 
 		raytracer->getBuffer(buf, width, height);
 
-		if (buf)
+		if (buf) {
 			writeImage(imgName, width, height, buf);
+            if (upsample) {
+                system((std::string("python super-resolution/run.py ") + std::string(imgName)).c_str());
+            }
+        }
+
 
 		double t = (double)(end - start) / CLOCKS_PER_SEC;
 		//		int totalRays = TraceUI::resetCount();
