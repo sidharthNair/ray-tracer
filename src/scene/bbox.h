@@ -6,12 +6,13 @@ class ray;
 class BoundingBox {
 	bool bEmpty;
 	bool dirty;
-	glm::dvec3 bmin;
-	glm::dvec3 bmax;
 	double bArea   = 0.0;
 	double bVolume = 0.0;
 
 public:
+    glm::dvec3 bmin;
+	glm::dvec3 bmax;
+
 	BoundingBox();
 	BoundingBox(glm::dvec3 bMin, glm::dvec3 bMax);
 
@@ -49,6 +50,17 @@ public:
 		}
 	}
 
+    int largestDimension() {
+        glm::dvec3 dimLength = bmax - bmin;
+        if (dimLength[0] >= dimLength[1] && dimLength[0] >= dimLength[2]) {
+            return 0;
+        } else if (dimLength[1] >= dimLength[0] && dimLength[1] >= dimLength[2]) {
+            return 1;
+        } else {
+            return 2;
+        }
+    }
+
 	// Does this bounding box intersect the target?
 	bool intersects(const BoundingBox& target) const;
 
@@ -65,4 +77,5 @@ public:
 	double area();
 	double volume();
 	void merge(const BoundingBox& bBox);
+    void merge(const glm::dvec3& center);
 };

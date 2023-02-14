@@ -23,7 +23,6 @@ class Trimesh : public MaterialSceneObject {
 	typedef std::vector<Material *> Materials;
 
 	Vertices vertices;
-	Faces faces;
 	Normals normals;
 	Materials materials;
 	BoundingBox localBounds;
@@ -74,6 +73,9 @@ public:
 		localBounds = localbounds;
 		return localbounds;
 	}
+
+    Faces faces;
+    bool isTrimesh() { return true; }
 
 protected:
 	void glDrawLocal(int quality, bool actualMaterials,

@@ -17,6 +17,7 @@
 #include <mutex>
 
 #include "bbox.h"
+#include "bvh.h"
 #include "camera.h"
 #include "material.h"
 #include "ray.h"
@@ -35,6 +36,8 @@ class Scene;
 
 template <typename Obj>
 class KdTree;
+
+class BVH;
 
 class SceneElement {
 public:
@@ -177,6 +180,8 @@ public:
 	{
 	}
 
+    virtual bool isTrimesh() { return false; }
+
 protected:
 	BoundingBox bounds;
 	TransformNode* transform;
@@ -264,6 +269,8 @@ public:
 
 	const BoundingBox& bounds() const { return sceneBounds; }
 
+    void buildBVH();
+
 
 private:
 	std::vector<std::unique_ptr<Geometry>> objects;
@@ -287,6 +294,9 @@ private:
 	KdTree<Geometry>* kdtree;
 
 	mutable std::mutex intersectionCacheMutex;
+
+    BVH* bvh;
+    bool built = false;
 
 public:
 	// This is used for debugging purposes only.

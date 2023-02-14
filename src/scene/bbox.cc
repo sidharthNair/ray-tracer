@@ -117,3 +117,15 @@ void BoundingBox::merge(const BoundingBox& bBox)
 	dirty  = true;
 	bEmpty = false;
 }
+
+void BoundingBox::merge(const glm::dvec3& center)
+{
+	for (int axis = 0; axis < 3; axis++) {
+		if (bEmpty || center[axis] < bmin[axis])
+			bmin[axis] = center[axis];
+		if (bEmpty || center[axis] > bmax[axis])
+			bmax[axis] = center[axis];
+	}
+	dirty  = true;
+	bEmpty = false;
+}
