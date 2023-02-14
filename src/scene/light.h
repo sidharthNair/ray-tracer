@@ -58,9 +58,9 @@ public:
 		float constantAttenuationTerm, float linearAttenuationTerm,
 		float quadraticAttenuationTerm )
 		: Light( scene, color ), position( pos ),
-		constantTerm(constantAttenuationTerm), 
+		constantTerm(constantAttenuationTerm),
 		linearTerm(linearAttenuationTerm),
-		quadraticTerm(quadraticAttenuationTerm) 
+		quadraticTerm(quadraticAttenuationTerm)
 		{}
 
 	virtual glm::dvec3 shadowAttenuation(const ray& r, const glm::dvec3& pos) const;
@@ -79,7 +79,7 @@ protected:
 	glm::dvec3 position;
 
 	// These three values are the a, b, and c in the distance
-	// attenuation function (from the slide labelled 
+	// attenuation function (from the slide labelled
 	// "Intensity drop-off with distance"):
 	//    f(d) = min( 1, 1/( a + b d + c d^2 ) )
 	float constantTerm;		// a
@@ -93,5 +93,7 @@ public:
 protected:
 
 };
+
+const double SHADOW_EPSILON = 0.00001;
 
 #endif // __LIGHT_H__

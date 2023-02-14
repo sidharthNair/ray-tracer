@@ -33,10 +33,10 @@ glm::dvec3 DirectionalLight::shadowAttenuation(const ray& r, const glm::dvec3& p
 			intensity[0] *= pow(kt[0], i.getT());
 			intensity[1] *= pow(kt[1], i.getT());
 			intensity[2] *= pow(kt[2], i.getT());
-		    shadowRay.setPosition(shadowRay.at(i) + RAY_EPSILON * i.getN());
+		    shadowRay.setPosition(shadowRay.at(i) + SHADOW_EPSILON * i.getN());
 		} else {
 			// Entering translucent object on path
-			shadowRay.setPosition(shadowRay.at(i) - RAY_EPSILON * i.getN());
+			shadowRay.setPosition(shadowRay.at(i) - SHADOW_EPSILON * i.getN());
 		}
 	}
 	return intensity;
@@ -95,10 +95,10 @@ glm::dvec3 PointLight::shadowAttenuation(const ray& r, const glm::dvec3& p) cons
 			intensity[0] *= pow(kt[0], i.getT());
 			intensity[1] *= pow(kt[1], i.getT());
 			intensity[2] *= pow(kt[2], i.getT());
-		    shadowRay.setPosition(shadowRay.at(i) + RAY_EPSILON * i.getN());
+		    shadowRay.setPosition(shadowRay.at(i) + SHADOW_EPSILON * i.getN());
 		} else {
 			// Entering translucent object on path
-			shadowRay.setPosition(shadowRay.at(i) - RAY_EPSILON * i.getN());
+			shadowRay.setPosition(shadowRay.at(i) - SHADOW_EPSILON * i.getN());
 		}
 	}
 	return intensity;
